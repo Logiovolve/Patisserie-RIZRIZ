@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pâtisserie Log</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#fbf3e4;--sf:#fffaf0;--ink:#3b2a20;--mut:#8a7360;--ln:#e6d5b8;--br:#7a4b2a;--brt:#fff;--bl:#2f6fb0;--pk:#c2446f;--gr:#2e7d4f;--wn:#c0392b;--tint:#f4e7cc;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241a14;--sf:#30231b;--ink:#f3e6d3;--mut:#b09a85;--ln:#4a382b;--br:#c99468;--brt:#241a14;--bl:#6fa8e6;--pk:#ee7aa0;--gr:#6cc08c;--wn:#ff8a78;--tint:#3a2b20;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#241a14;--sf:#30231b;--ink:#f3e6d3;--mut:#b09a85;--ln:#4a382b;--br:#c99468;--brt:#241a14;--bl:#6fa8e6;--pk:#ee7aa0;--gr:#6cc08c;--wn:#ff8a78;--tint:#3a2b20;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.6 "Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;-webkit-tap-highlight-color:transparent}
+main{max-width:720px;margin:0 auto;padding:12px 14px 80px}
+header{background:var(--br);color:var(--brt);padding:14px;border-radius:0 0 20px 20px;max-width:720px;margin:0 auto}
+header h1{margin:0;font-size:22px;letter-spacing:.02em}
+header p{margin:0;font-size:13px;opacity:.85}
+.staff{display:flex;gap:8px;margin-top:10px}
+.staff input{flex:1;min-width:0}
+section{background:var(--sf);border:1px solid var(--ln);border-radius:18px;padding:14px;margin-top:14px}
+h2{margin:0 0 10px;font-size:17px}
+h2.bl{color:var(--bl)}h2.pk{color:var(--pk)}h2.gr{color:var(--gr)}h2.br{color:var(--br)}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--ln);border-radius:12px;padding:11px 12px;min-height:48px;width:100%}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--bl);outline-offset:1px}
+button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:14px;min-height:52px;padding:10px 14px;color:#fff;background:var(--br);transition:transform .08s}
+button:active{transform:scale(.97)}
+header button{background:var(--brt);color:var(--br);min-height:48px}
+.bg-bl{background:var(--bl)}.bg-pk{background:var(--pk)}.bg-gr{background:var(--gr)}
+.bg-bl,.bg-pk,.bg-gr{color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bg-bl,:root:not([data-theme="light"]) .bg-pk,:root:not([data-theme="light"]) .bg-gr{color:#1b120d}}
+.big{width:100%;min-height:68px;font-size:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ln)}
+.ghost.on{background:var(--pk);border-color:var(--pk);color:#fff}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.row>*{flex:1;min-width:0}.row>button{flex:0 0 auto}
+label{font-size:13px;color:var(--mut);display:block;margin:10px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:46px;background:var(--tint);color:var(--ink);border:1.5px solid var(--ln)}
+.chips button.on{background:var(--pk);border-color:var(--pk);color:#fff}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{min-height:46px}
+hr{border:0;border-top:1px dashed var(--ln);margin:14px 0}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--ln);align-items:flex-start}
+.log .t{font-weight:700;min-width:46px;font-variant-numeric:tabular-nums}
+.log .b{flex:1;min-width:0}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;color:#fff;margin-right:6px}
+.tag.h{background:var(--bl)}.tag.m{background:var(--pk)}.tag.c{background:var(--gr)}
+.log small{display:block;color:var(--mut);overflow-wrap:anywhere}
+.log .e{min-height:40px;background:var(--tint);color:var(--ink);padding:4px 12px}
+.empty{color:var(--mut);padding:18px 0;text-align:center}
+.radio{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
+.radio label{display:flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:15px}
+.radio input{width:auto;min-height:0}
+.modal{position:fixed;inset:0;background:rgba(20,10,5,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.modal[hidden]{display:none}
+.card{background:var(--sf);width:100%;max-width:560px;max-height:90%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.card h3{margin:0 0 4px}
+.plist{list-style:none;margin:8px 0;padding:0}
+.plist li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--ln)}
+.plist button{min-height:40px;background:var(--wn);color:#fff;padding:4px 12px}
+.toast{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-140%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:99px;font-weight:700;z-index:30;transition:transform .25s;max-width:90%;text-align:center}
+.toast.show{transform:translate(-50%,0)}.toast.warn{background:var(--wn);color:#fff}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pâtisserie Log</h1>
+  <p>手洗い・温度・製造をワンタップで記録</p>
+  <div class="staff"><input id="staff" placeholder="担当者名" aria-label="担当者名" autocomplete="off"><button id="saveStaff">保存</button></div>
+</header>
+<main>
+<section>
+  <h2 class="bl">手洗い記録</h2>
+  <div class="grid">
+    <button class="big bg-bl" data-wash="手洗い・石けん" data-d="通常手洗い">🧼 手洗い</button>
+    <button class="big bg-bl" data-wash="手洗い・アルコール消毒" data-d="消毒">🧴 消毒</button>
+  </div>
+  <div class="grid">
+    <button class="ghost" data-wash="手洗い・アルコール消毒" data-d="始業前・入室時">始業前・入室時</button>
+    <button class="ghost" data-wash="手洗い・アルコール消毒" data-d="トイレ後">トイレ後</button>
+    <button class="ghost" data-wash="手洗い・アルコール消毒" data-d="生卵・原料後">生卵・原料後</button>
+    <button class="ghost" data-wash="手洗い・アルコール消毒" data-d="清掃・ゴミ後">清掃・ゴミ後</button>
+  </div>
+</section>
+
+<section>
+  <h2 class="gr">温度・衛生チェック</h2>
+  <button class="big bg-gr" id="allOk">✅ すべて異常なし（一括記録）</button>
+  <hr>
+  <div class="row"><input id="tFridge" type="number" step="0.1" inputmode="decimal" placeholder="冷蔵庫・ショーケース ℃（10℃以下）" aria-label="冷蔵庫温度"><button class="bg-gr" id="rFridge">記録</button></div>
+  <div class="row"><input id="tFreezer" type="number" step="0.1" inputmode="decimal" placeholder="冷凍庫 ℃（-15℃以下）" aria-label="冷凍庫温度"><button class="bg-gr" id="rFreezer">記録</button></div>
+  <div class="grid">
+    <button class="ghost" id="rBody">体調・手指の傷なし</button>
+    <button class="ghost" id="rCloth">服装・身だしなみOK</button>
+  </div>
+</section>
+
+<section>
+  <h2 class="pk">製造・工程記録</h2>
+  <div class="chips" id="presets"></div>
+  <div class="row"><input id="item" placeholder="品目（選択または入力）" aria-label="品目"><button class="ghost" id="editPresets">品目を編集</button></div>
+  <label>工程・状態</label>
+  <div class="seg" id="steps"></div>
+  <div class="row">
+    <div><label for="qty">数量・バッチ</label><input id="qty" placeholder="例: 20個 / 3kg"></div>
+    <div><label for="temp">中心温度・庫内温度</label><input id="temp" placeholder="例: 85℃"></div>
+  </div>
+  <label for="mtime">記録時刻（空欄で現在時刻）</label>
+  <input id="mtime" type="time">
+  <button class="big bg-pk" id="rMake" style="margin-top:12px">🍰 製造を記録</button>
+</section>
+
+<section>
+  <h2 class="br">履歴</h2>
+  <input id="date" type="date" aria-label="表示する日付">
+  <ul class="log" id="log"></ul>
+</section>
+
+<section>
+  <h2 class="gr">Excel出力</h2>
+  <div class="radio">
+    <label><input type="radio" name="scope" value="day" checked>選択中の日付のみ</label>
+    <label><input type="radio" name="scope" value="all">保存されている全期間</label>
+  </div>
+  <div class="grid">
+    <button class="bg-gr" id="csv">CSVダウンロード</button>
+    <button class="bg-gr" id="tsv">Excel貼り付け用コピー</button>
+  </div>
+  <p style="font-size:12px;color:var(--mut);margin:10px 0 0">CSVはUTF-8（BOM付き）で、日付・時刻の昇順に出力します。データはこの端末のブラウザ内に保存されます。</p>
+</section>
+</main>
+
+<div class="modal" id="mEdit" hidden><div class="card">
+  <h3>記録を編集</h3>
+  <label>日付</label><input id="eDate" type="date">
+  <label>時刻</label><input id="eTime" type="time">
+  <label>内容・品目</label><input id="eTitle">
+  <label>詳細</label><input id="eDetail">
+  <label>担当者</label><input id="eStaff">
+  <div class="grid"><button class="bg-gr" id="eSave">保存</button><button class="ghost" id="eCancel">キャンセル</button></div>
+  <button style="background:var(--wn);width:100%;margin-top:8px" id="eDel">この記録を削除</button>
+</div></div>
+
+<div class="modal" id="mPre" hidden><div class="card">
+  <h3>定番メニューの編集</h3>
+  <ul class="plist" id="plist"></ul>
+  <div class="row"><input id="pNew" placeholder="新しい品目名"><button class="bg-pk" id="pAdd">追加</button></div>
+  <button class="ghost" style="width:100%;margin-top:12px" id="pClose">閉じる</button>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+var K={logs:"patisserie_logs_v1",pre:"patisserie_presets_v1",staff:"patisserie_staff_v1"};
+var mem={};
+function load(k,def){try{var v=localStorage.getItem(k);if(v===null)return k in mem?mem[k]:def;return v}catch(e){return k in mem?mem[k]:def}}
+function save(k,v){mem[k]=v;try{localStorage.setItem(k,v)}catch(e){}}
+function loadJSON(k,def){try{var v=JSON.parse(load(k,null));return v==null?def:v}catch(e){return def}}
+var DEFAULT_PRE=["苺のショートケーキ","カスタードクリーム","シュークリーム","生クリーム","チョコレートタルト"];
+var STEPS=["仕込み開始","焼成・加熱完了","冷却・冷蔵保管","仕上げ・完成"];
+var logs=loadJSON(K.logs,[]),pre=loadJSON(K.pre,DEFAULT_PRE),staff=load(K.staff,"");
+var step=STEPS[0],editId=null;
+var $=function(id){return document.getElementById(id)};
+function pad(n){return String(n).padStart(2,"0")}
+function today(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function now(){var d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var tt;function toast(m,w){var t=$("toast");t.textContent=m;t.className="toast show"+(w?" warn":"");clearTimeout(tt);tt=setTimeout(function(){t.className="toast"},2200)}
+function persist(){save(K.logs,JSON.stringify(logs))}
+function add(cat,title,detail,time){
+  logs.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),date:today(),time:time||now(),category:cat,title:title,detail:detail||"",staff:staff});
+  persist();
+  if($("date").value!==today())$("date").value=today();
+  render();
+}
+function cmp(a,b){return a.date===b.date?(a.time<b.time?-1:a.time>b.time?1:0):(a.date<b.date?-1:1)}
+
+/* staff */
+$("staff").value=staff;
+$("saveStaff").onclick=function(){staff=$("staff").value.trim();save(K.staff,staff);toast(staff?"担当者を保存しました！":"担当者名を空にしました")};
+
+/* wash */
+document.querySelectorAll("[data-wash]").forEach(function(b){b.onclick=function(){add("手洗い",b.dataset.wash,b.dataset.d);toast("記録しました！")}});
+
+/* hygiene */
+$("allOk").onclick=function(){add("温度・衛生","日常衛生・庫内温度一括点検","冷蔵庫10℃以下・冷凍庫-15℃以下・体調服装すべて良好");toast("一括記録しました！")};
+function temp(id,label,limit,isMax){
+  var v=$(id).value.trim();if(v===""||isNaN(+v)){toast("温度を数値で入力してください",true);return}
+  var n=+v,ok=isMax?n<=limit:n<=limit;
+  add("温度・衛生",label+"温度",n+"℃（基準"+limit+"℃以下）"+(ok?"":" ⚠基準外"));
+  $(id).value="";
+  ok?toast("記録しました！"):toast("基準を超えています！",true);
+}
+$("rFridge").onclick=function(){temp("tFridge","冷蔵庫・ショーケース",10,true)};
+$("rFreezer").onclick=function(){temp("tFreezer","冷凍庫",-15,true)};
+$("rBody").onclick=function(){add("温度・衛生","体調・手指チェック","体調良好・手指の傷なし");toast("記録しました！")};
+$("rCloth").onclick=function(){add("温度・衛生","服装・身だしなみチェック","服装・身だしなみ良好");toast("記録しました！")};
+
+/* make */
+function renderPre(){
+  var h="";pre.forEach(function(p){h+='<button data-p="'+esc(p)+'" class="'+($("item").value===p?"on":"")+'">'+esc(p)+'</button>'});
+  $("presets").innerHTML=h||'<span class="empty">定番メニューがありません</span>';
+  $("presets").querySelectorAll("button").forEach(function(b){b.onclick=function(){$("item").value=b.dataset.p;renderPre()}});
+}
+function renderSteps(){
+  $("steps").innerHTML=STEPS.map(function(s){return '<button class="ghost'+(s===step?" on":"")+'" data-s="'+s+'">'+s+'</button>'}).join("");
+  $("steps").querySelectorAll("button").forEach(function(b){b.onclick=function(){step=b.dataset.s;renderSteps()}});
+}
+$("item").oninput=renderPre;
+$("rMake").onclick=function(){
+  var it=$("item").value.trim();if(!it){toast("品目を選択してください",true);return}
+  var d=step,q=$("qty").value.trim(),t=$("temp").value.trim();
+  if(q)d+=" / 数量: "+q;if(t)d+=" / 温度: "+t;
+  add("製造",it,d,$("mtime").value||null);
+  $("qty").value="";$("temp").value="";$("mtime").value="";toast("記録しました！");
+};
+
+/* presets modal */
+function renderPList(){
+  $("plist").innerHTML=pre.map(function(p,i){return '<li><span>'+esc(p)+'</span><button data-i="'+i+'">削除</button></li>'}).join("")||'<li class="empty">品目がありません</li>';
+  $("plist").querySelectorAll("button").forEach(function(b){b.onclick=function(){pre.splice(+b.dataset.i,1);save(K.pre,JSON.stringify(pre));renderPList();renderPre()}});
+}
+$("editPresets").onclick=function(){renderPList();$("mPre").hidden=false};
+$("pClose").onclick=function(){$("mPre").hidden=true};
+$("pAdd").onclick=function(){
+  var v=$("pNew").value.trim();if(!v)return;
+  if(pre.indexOf(v)>=0){toast("すでに登録されています",true);return}
+  pre.push(v);save(K.pre,JSON.stringify(pre));$("pNew").value="";renderPList();renderPre();toast("追加しました！");
+};
+
+/* history */
+$("date").value=today();$("date").onchange=render;
+function render(){
+  var d=$("date").value||today();
+  var list=logs.filter(function(l){return l.date===d}).sort(cmp).reverse();
+  $("log").innerHTML=list.length?list.map(function(l){
+    var c=l.category==="手洗い"?"h":l.category==="製造"?"m":"c";
+    return '<li><span class="t">'+esc(l.time)+'</span><div class="b"><span class="tag '+c+'">'+esc(l.category)+'</span>'+esc(l.title)+
+      '<small>'+esc(l.detail)+(l.staff?'（'+esc(l.staff)+'）':'')+'</small></div><button class="e" data-id="'+l.id+'">編集</button></li>'
+  }).join(""):'<li class="empty">この日の記録はまだありません。上のボタンから記録できます。</li>';
+  $("log").querySelectorAll(".e").forEach(function(b){b.onclick=function(){openEdit(b.dataset.id)}});
+}
+function openEdit(id){
+  var l=logs.filter(function(x){return x.id===id})[0];if(!l)return;
+  editId=id;$("eDate").value=l.date;$("eTime").value=l.time;$("eTitle").value=l.title;$("eDetail").value=l.detail;$("eStaff").value=l.staff||"";
+  resetDel();$("mEdit").hidden=false;
+}
+$("eCancel").onclick=function(){resetDel();$("mEdit").hidden=true};
+$("eSave").onclick=function(){
+  var l=logs.filter(function(x){return x.id===editId})[0];if(!l)return;
+  if(!$("eDate").value||!$("eTime").value){toast("日付と時刻を入力してください",true);return}
+  l.date=$("eDate").value;l.time=$("eTime").value;l.title=$("eTitle").value.trim();l.detail=$("eDetail").value.trim();l.staff=$("eStaff").value.trim();
+  persist();$("mEdit").hidden=true;$("date").value=l.date;render();toast("修正しました！");
+};
+var delArm=0;
+function resetDel(){clearTimeout(delArm);$("eDel").textContent="この記録を削除";$("eDel").dataset.armed=""}
+$("eDel").onclick=function(){
+  var b=$("eDel");
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="本当に削除する（もう一度タップ）";delArm=setTimeout(resetDel,4000);return}
+  resetDel();
+  logs=logs.filter(function(x){return x.id!==editId});persist();$("mEdit").hidden=true;render();toast("削除しました");
+};
+
+/* export */
+function scoped(){
+  var all=document.querySelector('input[name="scope"]:checked').value==="all",d=$("date").value||today();
+  return{all:all,date:d,rows:logs.filter(function(l){return all||l.date===d}).sort(cmp)};
+}
+var HEAD=["日付","時刻","カテゴリ","内容・品目","詳細・温度・数量","担当者"];
+function cell(s){s=String(s==null?"":s);return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function row(l){return[l.date,l.time,l.category,l.title,l.detail,l.staff||""]}
+$("csv").onclick=function(){
+  var s=scoped();if(!s.rows.length){toast("出力する記録がありません",true);return}
+  var txt="\uFEFF"+[HEAD].concat(s.rows.map(row)).map(function(r){return r.map(cell).join(",")}).join("\r\n")+"\r\n";
+  var name=s.all?"衛生製造記録_全期間_"+today()+".csv":"衛生製造記録_"+s.date+".csv";
+  var dl=window.claude&&window.claude.use?window.claude.use("downloads"):Promise.resolve(null);
+  dl.then(function(d){
+    if(d){return d.save({filename:name,data:txt}).then(function(){toast("CSVを保存しました！")})}
+    var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();a.remove();toast("CSVを出力しました！");
+  }).catch(function(e){if(!e||e.code!=="declined")toast("ダウンロードできませんでした。コピー機能をお使いください",true)});
+};
+$("tsv").onclick=function(){
+  var s=scoped();if(!s.rows.length){toast("コピーする記録がありません",true);return}
+  var txt=s.rows.map(function(l){return row(l).map(function(c){return String(c).replace(/[\t\r\n]+/g," ")}).join("\t")}).join("\n");
+  function fb(){var t=document.createElement("textarea");t.value=txt;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();var ok=false;try{ok=document.execCommand("copy")}catch(e){}t.remove();ok?toast("コピー完了！"):toast("コピーできませんでした",true)}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast("コピー完了！")},fb)}else fb();
+};
+
+renderPre();renderSteps();render();
+})();
+</script>
+</body>
+</html>
