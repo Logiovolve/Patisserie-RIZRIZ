@@ -55,6 +55,24 @@ hr{border:0;border-top:1px dashed var(--ln);margin:14px 0}
 .radio{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
 .radio label{display:flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:15px}
 .radio input{width:auto;min-height:0}
+[hidden]{display:none!important}
+button:disabled{opacity:.45;cursor:default}
+.log .sk{width:28px;min-height:0;height:28px;flex:none;margin-top:3px;accent-color:var(--pk);pointer-events:none}
+.log li.sel{background:color-mix(in srgb,var(--pk) 14%,transparent)}
+.grp{border:1px solid var(--ln);border-radius:14px;margin-top:8px;background:var(--bg);overflow:hidden}
+.grp summary{padding:12px 14px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:48px}
+.cnt{font-size:13px;color:var(--mut);font-weight:500}.cnt.done{color:var(--gr);font-weight:700}
+.ci{padding:10px 12px;border-top:1px solid var(--ln)}
+.ci.ok{background:color-mix(in srgb,var(--gr) 14%,transparent)}
+.ci.ng{background:color-mix(in srgb,var(--wn) 18%,transparent)}
+.cn{font-size:15px;display:flex;justify-content:space-between;gap:8px}
+.bd{font-size:12px;color:var(--mut);text-align:right;font-weight:500;overflow-wrap:anywhere}
+.ci>input{margin-top:6px;min-height:44px}
+.cb{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cb button{min-height:44px;flex:1 1 auto;padding:6px 10px}
+.cb input{margin:0;flex:1 1 100%;min-height:44px}
+.b-ng{background:var(--wn);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .b-ng{color:#1b120d}}
 .modal{position:fixed;inset:0;background:rgba(20,10,5,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .modal[hidden]{display:none}
 .card{background:var(--sf);width:100%;max-width:560px;max-height:90%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
@@ -89,11 +107,12 @@ hr{border:0;border-top:1px dashed var(--ln);margin:14px 0}
 </section>
 
 <section>
-  <h2 class="gr">温度・衛生チェック</h2>
-  <button class="big bg-gr" id="allOk">✅ すべて異常なし（一括記録）</button>
+  <h2 class="gr">点検表（一般衛生管理・重要管理）</h2>
+  <p style="font-size:13px;color:var(--mut);margin:0 0 8px">今日の点検を項目ごとに記録します。使用水・排水害虫は一括の対象外です。</p>
+  <button class="big bg-gr" id="allOk">✅ 未記録をすべて異常なしで一括記録</button>
+  <div id="chk"></div>
   <hr>
-  <div class="row"><input id="tFridge" type="number" step="0.1" inputmode="decimal" placeholder="冷蔵庫・ショーケース ℃（10℃以下）" aria-label="冷蔵庫温度"><button class="bg-gr" id="rFridge">記録</button></div>
-  <div class="row"><input id="tFreezer" type="number" step="0.1" inputmode="decimal" placeholder="冷凍庫 ℃（-15℃以下）" aria-label="冷凍庫温度"><button class="bg-gr" id="rFreezer">記録</button></div>
+  <h2 style="font-size:15px;margin:0">個人衛生</h2>
   <div class="grid">
     <button class="ghost" id="rBody">体調・手指の傷なし</button>
     <button class="ghost" id="rCloth">服装・身だしなみOK</button>
@@ -118,6 +137,12 @@ hr{border:0;border-top:1px dashed var(--ln);margin:14px 0}
 <section>
   <h2 class="br">履歴</h2>
   <input id="date" type="date" aria-label="表示する日付">
+  <button class="ghost" id="selToggle" style="width:100%;margin-top:8px">選択削除</button>
+  <div class="grid" id="selBar" hidden style="grid-template-columns:1fr 1.5fr 1fr">
+    <button class="ghost" id="selAll">全選択</button>
+    <button class="b-ng" id="selDel">削除（0件）</button>
+    <button class="ghost" id="selEnd">終了</button>
+  </div>
   <ul class="log" id="log"></ul>
 </section>
 
@@ -126,6 +151,11 @@ hr{border:0;border-top:1px dashed var(--ln);margin:14px 0}
   <div class="radio">
     <label><input type="radio" name="scope" value="day" checked>選択中の日付のみ</label>
     <label><input type="radio" name="scope" value="all">保存されている全期間</label>
+    <label><input type="radio" name="scope" value="range">期間を指定</label>
+  </div>
+  <div class="row" id="rng" hidden>
+    <div><label for="rFrom">開始日</label><input id="rFrom" type="date"></div>
+    <div><label for="rTo">終了日</label><input id="rTo" type="date"></div>
   </div>
   <div class="grid">
     <button class="bg-gr" id="csv">CSVダウンロード</button>
@@ -189,16 +219,56 @@ $("saveStaff").onclick=function(){staff=$("staff").value.trim();save(K.staff,sta
 document.querySelectorAll("[data-wash]").forEach(function(b){b.onclick=function(){add("手洗い",b.dataset.wash,b.dataset.d);toast("記録しました！")}});
 
 /* hygiene */
-$("allOk").onclick=function(){add("温度・衛生","日常衛生・庫内温度一括点検","冷蔵庫10℃以下・冷凍庫-15℃以下・体調服装すべて良好");toast("一括記録しました！")};
-function temp(id,label,limit,isMax){
-  var v=$(id).value.trim();if(v===""||isNaN(+v)){toast("温度を数値で入力してください",true);return}
-  var n=+v,ok=isMax?n<=limit:n<=limit;
-  add("温度・衛生",label+"温度",n+"℃（基準"+limit+"℃以下）"+(ok?"":" ⚠基準外"));
-  $(id).value="";
-  ok?toast("記録しました！"):toast("基準を超えています！",true);
+/* checklist */
+var CHK=[{g:'施設清掃',i:[{n:'店内清掃・設備機器の故障異常がない（別紙）'},{n:'機器・器具の殺菌・洗浄・消毒（次亜使用日は◎）',d:1},{n:'トイレ内の清掃・ノブ便座の消毒'}]},{g:'食味チェック',i:[{n:'使用水（2週目の木曜）',c:1},{n:'製造商品 クッキーなど',l:1},{n:'製造商品 プリンなど',l:1},{n:'製造商品 生ケーキ',l:1}]},{g:'冷蔵庫温度',i:[{n:'ショーケース',T:'r'},{n:'平台',T:'r'},{n:'高湿冷蔵庫',T:'r'}]},{g:'冷凍庫温度',i:[{n:'冷凍庫1',T:'f'},{n:'冷凍庫2',T:'f'},{n:'ストッカー',T:'f'}]},{g:'排水・害虫',i:[{n:'各業者が処理を行った日にチェック',c:1}]},{g:'納品状況',i:[{n:'原材料の内容（においや品質）と期限状態'},{n:'原材料の保管と整頓状態'},{n:'資材包材の整頓保管状態'},{n:'商品の適正な保管'},{n:'商品陳列と表示期限'}]},{g:'重要管理',i:[{n:'次亜塩素酸水でのふきあげ・消毒'},{n:'加熱の適正・色など'},{n:'冷却温度・状態'},{n:'異物の除去（割卵での確認など）'}]}];
+var LIM={r:5,f:-15};
+function ttl(G,it){return G.g+'・'+it.n}
+function findToday(t){for(var i=logs.length-1;i>=0;i--){var l=logs[i];if(l.date===today()&&l.category==='点検'&&l.title===t)return l}return null}
+function buildCheck(){
+  $('chk').innerHTML=CHK.map(function(G,gi){
+    return '<details class="grp"><summary>'+esc(G.g)+'<span class="cnt"></span></summary>'+G.i.map(function(it,ii){
+      var t=it.T,h='<div class="ci" data-g="'+gi+'" data-i="'+ii+'"><div class="cn"><span>'+esc(it.n)+'</span><span class="bd">未</span></div>';
+      if(it.l)h+='<input class="lv" placeholder="ロット（任意）" aria-label="ロット">';
+      h+='<div class="cb">';
+      if(t)h+='<input class="tv" type="number" step="0.1" inputmode="decimal" placeholder="実測℃（任意）" aria-label="実測温度">';
+      h+='<button class="bg-gr" data-a="ok">'+(t?LIM[t]+'℃以下':'○ 良好')+'</button>';
+      if(it.d)h+='<button class="bg-gr" data-a="dbl">◎ 次亜使用</button>';
+      if(!t)h+='<button class="ghost" data-a="na">／ 該当なし</button>';
+      h+='<button class="b-ng" data-a="ng">'+(t?'超過':'× 異常')+'</button></div></div>';
+      return h}).join('')+'</details>'}).join('');
 }
-$("rFridge").onclick=function(){temp("tFridge","冷蔵庫・ショーケース",10,true)};
-$("rFreezer").onclick=function(){temp("tFreezer","冷凍庫",-15,true)};
+$('chk').onclick=function(e){var b=e.target.closest('button[data-a]');if(!b)return;var r=b.closest('.ci'),G=CHK[+r.dataset.g];rec(G,G.i[+r.dataset.i],b.dataset.a,r)};
+function rec(G,it,a,r){
+  var tv=r.querySelector('.tv'),lv=r.querySelector('.lv'),num=null,d;
+  if(tv&&tv.value.trim()!==''){num=+tv.value;if(isNaN(num)){toast('温度を数値で入力してください',true);return}}
+  if(it.T){var lim=LIM[it.T];
+    if(a==='ok'&&num!==null&&num>lim){toast('基準を超えています。「超過」を押してください',true);return}
+    d=(num!==null?num+'℃（基準'+lim+'℃以下）':lim+'℃以下')+(a==='ng'?' ×超過':' ○');
+  }else{d={ok:'○',dbl:'◎（次亜使用）',na:'／（該当なし）',ng:'×（異常）'}[a];
+    if(lv&&lv.value.trim())d+=' / ロット: '+lv.value.trim()}
+  add('点検',ttl(G,it),d);
+  if(tv)tv.value='';if(lv)lv.value='';
+  a==='ng'?toast('異常として記録しました',true):toast('記録しました！');
+}
+function updateCheck(){
+  document.querySelectorAll('#chk .ci').forEach(function(r){
+    var G=CHK[+r.dataset.g],l=findToday(ttl(G,G.i[+r.dataset.i])),b=r.querySelector('.bd');
+    r.className='ci'+(l?(l.detail.indexOf('×')>=0?' ng':l.detail.indexOf('／')===0?' na':' ok'):'');
+    b.textContent=l?l.time+' '+l.detail:'未';
+  });
+  document.querySelectorAll('#chk .grp').forEach(function(g){
+    var n=g.querySelectorAll('.ci.ok,.ci.ng,.ci.na').length,t=g.querySelectorAll('.ci').length,c=g.querySelector('.cnt');
+    c.textContent=n+' / '+t;c.className='cnt'+(n===t?' done':'');
+  });
+}
+$('allOk').onclick=function(){
+  var n=0;
+  CHK.forEach(function(G){G.i.forEach(function(it){
+    if(it.c||findToday(ttl(G,it)))return;
+    add('点検',ttl(G,it),it.T?LIM[it.T]+'℃以下 ○':'○');n++;
+  })});
+  n?toast(n+'件を一括記録しました！'):toast('記録する未入力項目がありません');
+};
 $("rBody").onclick=function(){add("温度・衛生","体調・手指チェック","体調良好・手指の傷なし");toast("記録しました！")};
 $("rCloth").onclick=function(){add("温度・衛生","服装・身だしなみチェック","服装・身だしなみ良好");toast("記録しました！")};
 
@@ -235,16 +305,42 @@ $("pAdd").onclick=function(){
 };
 
 /* history */
-$("date").value=today();$("date").onchange=render;
+var selMode=false,sel={},delArm2=0;
+function selIds(){var d=$("date").value||today();return logs.filter(function(l){return l.date===d&&sel[l.id]}).map(function(l){return l.id})}
+function armReset(){clearTimeout(delArm2);$("selDel").dataset.armed=""}
+function selUI(){
+  $("selBar").hidden=!selMode;$("selToggle").hidden=selMode;
+  var n=selIds().length,b=$("selDel");b.disabled=!n;
+  b.textContent=b.dataset.armed?"本当に削除（"+n+"件・もう一度）":"削除（"+n+"件）";
+}
+function setSel(on){selMode=on;sel={};armReset();render()}
+$("selToggle").onclick=function(){setSel(true)};
+$("selEnd").onclick=function(){setSel(false)};
+$("selAll").onclick=function(){
+  var d=$("date").value||today(),vis=logs.filter(function(l){return l.date===d}),all=vis.length>0&&vis.every(function(l){return sel[l.id]});
+  sel={};if(!all)vis.forEach(function(l){sel[l.id]=1});armReset();render();
+};
+$("selDel").onclick=function(){
+  var ids=selIds();if(!ids.length)return;var b=$("selDel");
+  if(!b.dataset.armed){b.dataset.armed="1";delArm2=setTimeout(function(){armReset();selUI()},4000);selUI();return}
+  armReset();logs=logs.filter(function(l){return ids.indexOf(l.id)<0});persist();sel={};render();toast(ids.length+"件削除しました");
+};
+$("log").addEventListener("click",function(e){
+  if(!selMode)return;var li=e.target.closest("li[data-id]");if(!li)return;
+  sel[li.dataset.id]=!sel[li.dataset.id];armReset();render();
+});
+$("date").value=today();$("date").onchange=function(){sel={};armReset();render()};
 function render(){
+  updateCheck();
   var d=$("date").value||today();
   var list=logs.filter(function(l){return l.date===d}).sort(cmp).reverse();
   $("log").innerHTML=list.length?list.map(function(l){
     var c=l.category==="手洗い"?"h":l.category==="製造"?"m":"c";
-    return '<li><span class="t">'+esc(l.time)+'</span><div class="b"><span class="tag '+c+'">'+esc(l.category)+'</span>'+esc(l.title)+
-      '<small>'+esc(l.detail)+(l.staff?'（'+esc(l.staff)+'）':'')+'</small></div><button class="e" data-id="'+l.id+'">編集</button></li>'
+    return '<li data-id="'+l.id+'" class="'+(selMode&&sel[l.id]?'sel':'')+'">'+(selMode?'<input type="checkbox" class="sk" tabindex="-1" aria-label="選択"'+(sel[l.id]?' checked':'')+'>':'')+'<span class="t">'+esc(l.time)+'</span><div class="b"><span class="tag '+c+'">'+esc(l.category)+'</span>'+esc(l.title)+
+      '<small>'+esc(l.detail)+(l.staff?'（'+esc(l.staff)+'）':'')+'</small></div>'+(selMode?'':'<button class="e" data-id="'+l.id+'">編集</button>')+'</li>'
   }).join(""):'<li class="empty">この日の記録はまだありません。上のボタンから記録できます。</li>';
   $("log").querySelectorAll(".e").forEach(function(b){b.onclick=function(){openEdit(b.dataset.id)}});
+  selUI();
 }
 function openEdit(id){
   var l=logs.filter(function(x){return x.id===id})[0];if(!l)return;
@@ -269,16 +365,22 @@ $("eDel").onclick=function(){
 
 /* export */
 function scoped(){
-  var all=document.querySelector('input[name="scope"]:checked').value==="all",d=$("date").value||today();
-  return{all:all,date:d,rows:logs.filter(function(l){return all||l.date===d}).sort(cmp)};
+  var m=document.querySelector('input[name="scope"]:checked').value,d=$("date").value||today(),f=$("rFrom").value,t=$("rTo").value;
+  if(m==="range"){
+    if(!f||!t){toast("開始日と終了日を入力してください",true);return{rows:[],err:1}}
+    if(f>t){var x=f;f=t;t=x}
+  }
+  return{mode:m,date:d,from:f,to:t,rows:logs.filter(function(l){return m==="all"||(m==="day"?l.date===d:(m==="range"?l.date>=f&&l.date<=t:false))}).sort(cmp)};
 }
+$("rFrom").value=$("rTo").value=today();
+document.querySelectorAll('input[name="scope"]').forEach(function(r){r.onchange=function(){$("rng").hidden=document.querySelector('input[name="scope"]:checked').value!=="range"}});
 var HEAD=["日付","時刻","カテゴリ","内容・品目","詳細・温度・数量","担当者"];
 function cell(s){s=String(s==null?"":s);return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
 function row(l){return[l.date,l.time,l.category,l.title,l.detail,l.staff||""]}
 $("csv").onclick=function(){
-  var s=scoped();if(!s.rows.length){toast("出力する記録がありません",true);return}
+  var s=scoped();if(!s.rows.length){if(!s.err)toast("出力する記録がありません",true);return}
   var txt="\uFEFF"+[HEAD].concat(s.rows.map(row)).map(function(r){return r.map(cell).join(",")}).join("\r\n")+"\r\n";
-  var name=s.all?"衛生製造記録_全期間_"+today()+".csv":"衛生製造記録_"+s.date+".csv";
+  var name=s.mode==="all"?"衛生製造記録_全期間_"+today()+".csv":s.mode==="range"?"衛生製造記録_"+s.from+"_"+s.to+".csv":"衛生製造記録_"+s.date+".csv";
   var dl=window.claude&&window.claude.use?window.claude.use("downloads"):Promise.resolve(null);
   dl.then(function(d){
     if(d){return d.save({filename:name,data:txt}).then(function(){toast("CSVを保存しました！")})}
@@ -286,14 +388,15 @@ $("csv").onclick=function(){
   }).catch(function(e){if(!e||e.code!=="declined")toast("ダウンロードできませんでした。コピー機能をお使いください",true)});
 };
 $("tsv").onclick=function(){
-  var s=scoped();if(!s.rows.length){toast("コピーする記録がありません",true);return}
+  var s=scoped();if(!s.rows.length){if(!s.err)toast("コピーする記録がありません",true);return}
   var txt=s.rows.map(function(l){return row(l).map(function(c){return String(c).replace(/[\t\r\n]+/g," ")}).join("\t")}).join("\n");
   function fb(){var t=document.createElement("textarea");t.value=txt;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();var ok=false;try{ok=document.execCommand("copy")}catch(e){}t.remove();ok?toast("コピー完了！"):toast("コピーできませんでした",true)}
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast("コピー完了！")},fb)}else fb();
 };
 
-renderPre();renderSteps();render();
+buildCheck();renderPre();renderSteps();render();
 })();
 </script>
 </body>
 </html>
+```[cite: 1]
